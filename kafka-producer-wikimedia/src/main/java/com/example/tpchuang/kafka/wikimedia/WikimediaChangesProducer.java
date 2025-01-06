@@ -51,7 +51,7 @@ public class WikimediaChangesProducer {
     EventSource.Builder builder = new EventSource.Builder(eventHandler, URI.create(url));
     try (EventSource eventSource = builder.build()) {
       eventSource.start();
-      TimeUnit.SECONDS.sleep(3);
+      TimeUnit.SECONDS.sleep(5);
     } catch (InterruptedException e) {
       log.error("Interrupted", e);
       throw e;

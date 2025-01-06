@@ -27,8 +27,9 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.opensearch.action.bulk.BulkRequest;
+import org.opensearch.action.bulk.BulkResponse;
 import org.opensearch.action.index.IndexRequest;
-import org.opensearch.action.index.IndexResponse;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
@@ -73,18 +74,19 @@ public class OpenSearchConsumer {
 
       try {
         while (true) {
-          ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(1000));
+          // Poll every 2 to increase the likelihood of a larger batch.
+          ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(2000));
           if (records.count() > 0) {
             log.info("Received {} records", records.count());
+            BulkRequest bulkRequest = new BulkRequest();
             for (ConsumerRecord<String, String> r : records) {
               IndexRequest indexRequest = new IndexRequest(index).source(r.value(),
-                      XContentType.JSON)
-                  .id(r.key());
-              IndexResponse indexResponse = openSearchClient.index(indexRequest,
-                  RequestOptions.DEFAULT);
-              log.info("Inserted record '{}' into OpenSearch. Response Id: {}.", r.key(),
-                  indexResponse.getId());
+                  XContentType.JSON).id(r.key());
+              bulkRequest.add(indexRequest);
             }
+            BulkResponse bulkResponse = openSearchClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+            log.info("Inserted {} records into OpenSearch. Response status: {}, item count: {}.",
+                records.count(), bulkResponse.status(), bulkResponse.getItems().length);
           }
         }
       } catch (WakeupException e) {
