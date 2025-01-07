@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example.tpchuang'
+version = '1.0-SNAPSHOT'
+def lombokVersion = '1.18.36'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.kafka:kafka-streams:3.9.0'
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+    implementation 'ch.qos.logback:logback-classic:1.5.15'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.launchdarkly:okhttp-eventsource:2.7.1'
+    implementation 'com.google.guava:guava:33.3.1-jre'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
